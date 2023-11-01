@@ -1,0 +1,47 @@
+stages:
+  - test
+  - develop
+  - production
+
+variables:
+  APP_NAME: "rails"
+
+test_request:
+  stage: test
+  script:
+    - echo "Tests"
+  only:
+    - merge_requests
+  after_script:
+    - if [ $? -eq 0 ]; then echo "Tests passed successfully!"
+
+test_master:
+  stage: test
+  script:
+    - echo "Tests"
+  only:
+    - master
+  after_script:
+    - if [ $? -eq 0 ]; then echo "Tests passed successfully!"
+
+dev:
+  stage: develop
+  script:
+    - echo "Deploying to development environment"
+    - echo "Deploying $APP_NAME to development server"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE =~ /skip deploy/i'
+      when: never
+    - if: '$CI_COMMIT_BRANCH !=  "master"'
+      when: never
+    - if: '$? == 0'
+      when: always
+
+prod:
+  stage: production
+  script:
+    - echo "Deploying to prod environment"
+    - echo "Deploying $APP_NAME to prod server"
+  only:
+    - master
+    - triggers
